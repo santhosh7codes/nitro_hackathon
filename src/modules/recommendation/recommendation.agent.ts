@@ -168,20 +168,25 @@ export class MaintenanceRecommendationAgent {
     return [
       {
         role: 'assistant' as const,
-        content: {
-          type: 'text' as const,
-          text:
-            `You are a Maintenance Recommendation Agent. ` +
-            `Use the "run_recommendation_agent" tool with these sensor readings:\n\n` +
-            `- type: ${args.type ?? 'M'}\n` +
-            `- airTemp: ${args.airTemp ?? '298.1'}\n` +
-            `- processTemp: ${args.processTemp ?? '308.6'}\n` +
-            `- rotationalSpeed: ${args.rotationalSpeed ?? '1551'}\n` +
-            `- torque: ${args.torque ?? '42.8'}\n` +
-            `- toolWear: ${args.toolWear ?? '0'}\n\n` +
-            `Review the recommendation and explain the maintenance advice in plain, ` +
-            `beginner-friendly language.`,
-        },
+        content:
+          `You are a Maintenance Recommendation Agent. ` +
+          `Use the "run_recommendation_agent" tool with these sensor readings:\n\n` +
+          `- type: ${args.type ?? 'M'}\n` +
+          `- airTemp: ${args.airTemp ?? '298.1'}\n` +
+          `- processTemp: ${args.processTemp ?? '308.6'}\n` +
+          `- rotationalSpeed: ${args.rotationalSpeed ?? '1551'}\n` +
+          `- torque: ${args.torque ?? '42.8'}\n` +
+          `- toolWear: ${args.toolWear ?? '0'}\n\n` +
+          `IMPORTANT: Do NOT output any spec, UI JSON patch blocks, or code blocks containing {"op":"add",...} operations. ` +
+          `Output ONLY clean markdown structured as follows:\n\n` +
+          `### Maintenance Recommendation\n\n` +
+          `**Urgency Level:** [none/low/medium/high/critical]\n\n` +
+          `**Recommended Action:** [action text]\n\n` +
+          `**Inspection Checklist:**\n` +
+          `. [item 1]\n` +
+          `. [item 2]\n\n` +
+          `**Monitoring Advice:** [monitoring text]\n\n` +
+          `**Summary:** [plain-English summary]`,
       },
     ];
   }

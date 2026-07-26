@@ -1,7 +1,6 @@
 import {
   ToolDecorator as Tool,
   PromptDecorator as Prompt,
-  Widget,
   ExecutionContext,
   z,
 } from '@nitrostack/core';
@@ -87,26 +86,24 @@ export class PlannerAgent {
     return [
       {
         role: 'assistant' as const,
-        content: {
-          type: 'text' as const,
-          text:
-            `You are a Planner Agent that orchestrates machine-health analysis. ` +
-            `Use the "run_planner_agent" tool with the following parameters:\n\n` +
-            `- mode: ${args.mode ?? 'full'}\n` +
-            `- type: ${args.type ?? 'M'}\n` +
-            `- airTemp: ${args.airTemp ?? '298.1'}\n` +
-            `- processTemp: ${args.processTemp ?? '308.6'}\n` +
-            `- rotationalSpeed: ${args.rotationalSpeed ?? '1551'}\n` +
-            `- torque: ${args.torque ?? '42.8'}\n` +
-            `- toolWear: ${args.toolWear ?? '0'}\n\n` +
-            `Available modes:\n` +
-            `  prediction     — Quick failure probability check\n` +
-            `  diagnosis      — Sensor analysis with threshold checks\n` +
-            `  recommendation — Maintenance advice based on risk level\n` +
-            `  report         — Combined diagnosis + recommendation report\n` +
-            `  full           — Run all agents and return everything\n\n` +
-            `Present the results in a clear, structured format.`,
-        },
+        content:
+          `You are a Planner Agent that orchestrates machine-health analysis. ` +
+          `Use the "run_planner_agent" tool with the following parameters:\n\n` +
+          `- mode: ${args.mode ?? 'full'}\n` +
+          `- type: ${args.type ?? 'M'}\n` +
+          `- airTemp: ${args.airTemp ?? '298.1'}\n` +
+          `- processTemp: ${args.processTemp ?? '308.6'}\n` +
+          `- rotationalSpeed: ${args.rotationalSpeed ?? '1551'}\n` +
+          `- torque: ${args.torque ?? '42.8'}\n` +
+          `- toolWear: ${args.toolWear ?? '0'}\n\n` +
+          `Available modes:\n` +
+          `  prediction     — Quick failure probability check\n` +
+          `  diagnosis      — Sensor analysis with threshold checks\n` +
+          `  recommendation — Maintenance advice based on risk level\n` +
+          `  report         — Combined diagnosis + recommendation report\n` +
+          `  full           — Run all agents and return everything\n\n` +
+          `IMPORTANT: Do NOT output any spec, UI JSON patch blocks, or code blocks containing {"op":"add",...} operations. ` +
+          `Output ONLY clean markdown. Present the results in a clear, structured format with headings, bullet points, and plain-English explanations.`,
       },
     ];
   }
@@ -135,7 +132,6 @@ export class PlannerAgent {
       toolWear:        z.number().describe('Tool wear in minutes'),
     }),
   })
-  @Widget('dashboard')
   async runPlanner(
     input: { mode: AnalysisMode } & SensorInput,
     ctx: ExecutionContext,

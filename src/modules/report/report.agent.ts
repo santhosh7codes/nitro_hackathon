@@ -62,19 +62,28 @@ export class ReportAgent {
     return [
       {
         role: 'assistant' as const,
-        content: {
-          type: 'text' as const,
-          text:
-            `You are a Machine Health Report Agent. ` +
-            `Use the "run_report_agent" tool with these sensor readings:\n\n` +
-            `- type: ${args.type ?? 'M'}\n` +
-            `- airTemp: ${args.airTemp ?? '298.1'}\n` +
-            `- processTemp: ${args.processTemp ?? '308.6'}\n` +
-            `- rotationalSpeed: ${args.rotationalSpeed ?? '1551'}\n` +
-            `- torque: ${args.torque ?? '42.8'}\n` +
-            `- toolWear: ${args.toolWear ?? '0'}\n\n` +
-            `Present the full report to the user in a clear, structured format.`,
-        },
+        content:
+          `You are a Machine Health Report Agent. ` +
+          `Use the "run_report_agent" tool with these sensor readings:\n\n` +
+          `- type: ${args.type ?? 'M'}\n` +
+          `- airTemp: ${args.airTemp ?? '298.1'}\n` +
+          `- processTemp: ${args.processTemp ?? '308.6'}\n` +
+          `- rotationalSpeed: ${args.rotationalSpeed ?? '1551'}\n` +
+          `- torque: ${args.torque ?? '42.8'}\n` +
+          `- toolWear: ${args.toolWear ?? '0'}\n\n` +
+          `IMPORTANT: Do NOT output any spec, UI JSON patch blocks, or code blocks containing {"op":"add",...} operations. ` +
+          `Output ONLY clean markdown structured as follows:\n\n` +
+          `### Machine Health Report\n\n` +
+          `**Overall Status:** [Healthy/Warning/Critical]\n` +
+          `**Prediction:** [No failure expected / Failure likely]\n` +
+          `**Failure Probability:** X.X%\n` +
+          `**Model Confidence:** Y.Y%\n\n` +
+          `**Findings:** List any abnormal sensor readings.\n\n` +
+          `**Urgency:** [none/low/medium/high/critical]\n` +
+          `**Recommended Action:** [action text]\n\n` +
+          `**Inspection Checklist:** Bullet list of items to inspect.\n\n` +
+          `**Summary:** Plain-English summary of the full report.\n\n` +
+          `**Recommendation:** Actionable next steps.`,
       },
     ];
   }

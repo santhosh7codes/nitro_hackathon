@@ -172,19 +172,23 @@ export class DiagnosticAgent {
     return [
       {
         role: 'assistant' as const,
-        content: {
-          type: 'text' as const,
-          text:
-            `You are a Machine Diagnostic Agent. ` +
-            `Use the "run_diagnostic_agent" tool with these sensor readings:\n\n` +
-            `- type: ${args.type ?? 'M'}\n` +
-            `- airTemp: ${args.airTemp ?? '298.1'}\n` +
-            `- processTemp: ${args.processTemp ?? '308.6'}\n` +
-            `- rotationalSpeed: ${args.rotationalSpeed ?? '1551'}\n` +
-            `- torque: ${args.torque ?? '42.8'}\n` +
-            `- toolWear: ${args.toolWear ?? '0'}\n\n` +
-            `Review the diagnosis and explain any issues in plain, beginner-friendly language.`,
-        },
+        content:
+          `You are a Machine Diagnostic Agent. ` +
+          `Use the "run_diagnostic_agent" tool with these sensor readings:\n\n` +
+          `- type: ${args.type ?? 'M'}\n` +
+          `- airTemp: ${args.airTemp ?? '298.1'}\n` +
+          `- processTemp: ${args.processTemp ?? '308.6'}\n` +
+          `- rotationalSpeed: ${args.rotationalSpeed ?? '1551'}\n` +
+          `- torque: ${args.torque ?? '42.8'}\n` +
+          `- toolWear: ${args.toolWear ?? '0'}\n\n` +
+          `IMPORTANT: Do NOT output any spec, UI JSON patch blocks, or code blocks containing {"op":"add",...} operations. ` +
+          `Output ONLY clean markdown structured as follows:\n\n` +
+          `### Diagnostic Report\n\n` +
+          `**Overall Status:** [Healthy/Warning/Critical]\n\n` +
+          `**Findings:** List any abnormal sensor readings as bullet points.\n\n` +
+          `**Failure-Mode Warnings:** List any detected failure patterns as bullet points.\n\n` +
+          `**ML Prediction:** Failure probability and confidence percentage.\n\n` +
+          `**Summary:** Plain-English explanation of the machine health.`,
       },
     ];
   }
@@ -245,35 +249,57 @@ export class DiagnosticAgent {
     });
 
     // ── 4. Determine overall health status ───────────────────────
+    //
+    // The status must be consistent with the ML prediction.
+    // We combine sensor threshold findings with the ML probability
+    // so that "Critical" is only used when the data truly supports it.
+    //
+    //   Critical:  ML predicts failure (prob ≥ 50%)
+    //              OR critical sensor readings AND ML prob ≥ 30%
+    //   Warning:   ML prob ≥ 10%
+    //              OR any abnormal sensor readings
+    //              OR any failure-mode hints
+    //   Healthy:   Everything else
+    //
     const hasCritical = findings.some(f => f.severity === 'critical');
     const hasWarning  = findings.some(f => f.severity === 'warning');
     const isFailure   = prediction.prediction === 'failure';
+    const prob        = prediction.probability;
 
     let overallStatus: 'Healthy' | 'Warning' | 'Critical';
-    if (hasCritical || isFailure) {
+    if (isFailure || (hasCritical && prob >= 0.30)) {
       overallStatus = 'Critical';
-    } else if (hasWarning || failureModeHints.length > 0) {
+    } else if (hasCritical || hasWarning || failureModeHints.length > 0 || prob >= 0.10) {
       overallStatus = 'Warning';
     } else {
       overallStatus = 'Healthy';
     }
 
     // ── 5. Build beginner-friendly summary ───────────────────────
+    const probPct = (prob * 100).toFixed(1);
     let summary: string;
     if (overallStatus === 'Healthy') {
       summary =
         'All sensor readings are within normal ranges. ' +
         'The machine appears healthy and no immediate issues were detected.';
     } else if (overallStatus === 'Warning') {
+      const parts: string[] = [];
+      if (findings.length > 0) {
+        parts.push(`${findings.length} abnormal sensor reading(s) detected`);
+      }
+      if (failureModeHints.length > 0) {
+        parts.push(`${failureModeHints.length} potential failure pattern(s) found`);
+      }
+      parts.push(`the ML model estimates a ${probPct}% chance of failure`);
       summary =
-        `Some sensor readings are outside normal ranges. ` +
-        `${findings.length} abnormal reading(s) and ${failureModeHints.length} potential ` +
-        `failure pattern(s) were detected. Monitor the machine closely.`;
+        `Some readings are outside normal ranges. ` +
+        parts.join(', ') + '. ' +
+        `Monitor the machine closely and schedule an inspection.`;
     } else {
       summary =
         `Critical issues detected. ` +
+        `The ML model predicts a ${probPct}% chance of failure. ` +
         `${findings.filter(f => f.severity === 'critical').length} critical reading(s) found. ` +
-        `The ML model predicts a ${(prediction.probability * 100).toFixed(1)}% chance of failure. ` +
         `Immediate attention is recommended.`;
     }
 

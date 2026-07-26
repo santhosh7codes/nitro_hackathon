@@ -66,20 +66,26 @@ export class PredictionAgent {
     return [
       {
         role: 'assistant' as const,
-        content: {
-          type: 'text' as const,
-          text:
-            `You are a Predictive Maintenance Agent. ` +
-            `Use the "run_prediction_agent" tool with the following sensor readings:\n\n` +
-            `- type: ${args.type ?? 'M'}\n` +
-            `- airTemp: ${args.airTemp ?? '298.1'}\n` +
-            `- processTemp: ${args.processTemp ?? '308.6'}\n` +
-            `- rotationalSpeed: ${args.rotationalSpeed ?? '1551'}\n` +
-            `- torque: ${args.torque ?? '42.8'}\n` +
-            `- toolWear: ${args.toolWear ?? '0'}\n\n` +
-            `Interpret the result and explain whether the machine is healthy or at risk of failure. ` +
-            `Use plain, beginner-friendly language.`,
-        },
+        content:
+          `You are a Predictive Maintenance Agent. ` +
+          `Use the "run_prediction_agent" tool with the following sensor readings:\n\n` +
+          `- type: ${args.type ?? 'M'}\n` +
+          `- airTemp: ${args.airTemp ?? '298.1'}\n` +
+          `- processTemp: ${args.processTemp ?? '308.6'}\n` +
+          `- rotationalSpeed: ${args.rotationalSpeed ?? '1551'}\n` +
+          `- torque: ${args.torque ?? '42.8'}\n` +
+          `- toolWear: ${args.toolWear ?? '0'}\n\n` +
+          `Interpret the result and explain whether the machine is healthy or at risk of failure. ` +
+          `Do NOT generate any spec or UI JSON patch code blocks. Output clean markdown structured as follows:\n\n` +
+          `### Prediction Agent Results\n\n` +
+          `**Machine Status:** ✅ Healthy (or ❌ Failure Risk)\n` +
+          `**Prediction:** No failure expected (or Failure expected)\n\n` +
+          `**Key Metrics:**\n` +
+          `. **Failure Probability:** X.X% (low risk)\n` +
+          `. **Model Confidence:** Y.Y% (high confidence)\n\n` +
+          `**Summary:**\n` +
+          `Detailed plain-English summary with bullet points for key sensor readings.\n\n` +
+          `**Recommendation:** Actionable recommendation.`,
       },
     ];
   }
