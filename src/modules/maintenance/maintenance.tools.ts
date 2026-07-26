@@ -1,5 +1,6 @@
 import { ToolDecorator as Tool, ExecutionContext, z } from '@nitrostack/core';
 import { getMachineByUdi, getDatasetStats } from '../../data/dataset.js';
+import { predict } from '../../ml/prediction-engine.js';
 
 /**
  * Maintenance Tools
@@ -10,6 +11,7 @@ import { getMachineByUdi, getDatasetStats } from '../../data/dataset.js';
  * - ping: Health check (Phase 1)
  * - get_machine: Look up a machine record by UDI (Phase 2)
  * - get_dataset_stats: Get summary statistics about the dataset (Phase 2)
+ * - predict_machine_failure: Predict machine failure from sensor readings (Phase 4)
  */
 export class MaintenanceTools {
   /**
@@ -78,6 +80,45 @@ export class MaintenanceTools {
 
     const stats = getDatasetStats();
     return stats;
+  }
+
+  /**
+   * Predict whether a machine will fail based on its current sensor readings.
+   * Uses a logistic regression model trained on the AI4I 2020 dataset.
+   * The model auto-trains on first invocation.
+   */
+  @Tool({
+    name: 'predict_machine_failure',
+    description: 'Predict whether a machine will fail based on 6 sensor readings. Returns a failure/no_failure prediction with probability and confidence scores.',
+    inputSchema: z.object({
+      type: z.string().describe('Machine quality type: L (Low), M (Medium), or H (High)'),
+      airTemp: z.number().describe('Air temperature in Kelvin'),
+      processTemp: z.number().describe('Process temperature in Kelvin'),
+      rotationalSpeed: z.number().describe('Rotational speed in RPM'),
+      torque: z.number().describe('Torque in Nm'),
+      toolWear: z.number().describe('Tool wear in minutes')
+    })
+  })
+  async predictMachineFailure(
+    input: { type: string; airTemp: number; processTemp: number; rotationalSpeed: number; torque: number; toolWear: number },
+    ctx: ExecutionContext
+  ) {
+    ctx.logger.info('Predicting machine failure', input);
+
+    const result = predict({
+      type: input.type,
+      airTemp: input.airTemp,
+      processTemp: input.processTemp,
+      rotationalSpeed: input.rotationalSpeed,
+      torque: input.torque,
+      toolWear: input.toolWear,
+    });
+
+    return {
+      prediction: result.prediction,
+      probability: result.probability,
+      confidence: result.confidence,
+    };
   }
 }
 

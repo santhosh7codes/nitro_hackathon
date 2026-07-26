@@ -16,33 +16,88 @@
             "result": 8,
             "expression": "5 + 3 = 8"
           }
-        },
-        {
-          "name": "Multiplication Example",
-          "description": "Shows the result of multiplying 6 × 7",
-          "data": {
-            "operation": "multiply",
-            "a": 6,
-            "b": 7,
-            "result": 42,
-            "expression": "6 × 7 = 42"
-          }
-        },
-        {
-          "name": "Division Example",
-          "description": "Shows the result of dividing 20 ÷ 4",
-          "data": {
-            "operation": "divide",
-            "a": 20,
-            "b": 4,
-            "result": 5,
-            "expression": "20 ÷ 4 = 5"
-          }
         }
       ],
       "tags": ["calculator", "math", "result"]
+    },
+    {
+      "uri": "/dashboard",
+      "name": "Predictive Maintenance Dashboard",
+      "description": "Displays machine-health analysis results including prediction, diagnosis, recommendations, and full reports from the Planner Agent",
+      "examples": [
+        {
+          "name": "Full Analysis — Failure Risk",
+          "description": "Complete analysis of a machine with elevated failure risk",
+          "data": {
+            "mode": "full",
+            "plan": {
+              "agentsSelected": ["PredictionAgent", "DiagnosticAgent", "RecommendationAgent", "ReportAgent"],
+              "agentsExecuted": ["PredictionAgent", "DiagnosticAgent", "RecommendationAgent", "ReportAgent"],
+              "executionOrder": ["PredictionAgent", "DiagnosticAgent", "RecommendationAgent", "ReportAgent"]
+            },
+            "results": {
+              "prediction": {
+                "machineStatus": "Failure Risk",
+                "prediction": "failure",
+                "probability": 0.7123,
+                "confidence": 0.7123,
+                "summary": "The machine is at risk of failure."
+              },
+              "diagnosis": {
+                "overallStatus": "Critical",
+                "findings": [
+                  {
+                    "sensor": "Torque",
+                    "value": 68.4,
+                    "unit": "Nm",
+                    "severity": "warning",
+                    "message": "Torque is above normal at 68.4 Nm (expected 15–65 Nm)."
+                  }
+                ],
+                "failureModeHints": [
+                  "Overstrain risk: high torque combined with significant tool wear."
+                ],
+                "summary": "Critical issues detected."
+              },
+              "recommendation": {
+                "urgency": "high",
+                "action": "Replace the tool immediately.",
+                "inspectNext": ["Torque load", "Cutting tool"],
+                "shouldStop": false,
+                "monitoringAdvice": "Monitor all sensors in real-time.",
+                "summary": "Maintenance should be performed as soon as possible."
+              }
+            },
+            "durationMs": 15,
+            "summary": "Ran all 4 agents."
+          }
+        },
+        {
+          "name": "Quick Prediction — Healthy",
+          "description": "Quick prediction check on a healthy machine",
+          "data": {
+            "mode": "prediction",
+            "plan": {
+              "agentsSelected": ["PredictionAgent"],
+              "agentsExecuted": ["PredictionAgent"],
+              "executionOrder": ["PredictionAgent"]
+            },
+            "results": {
+              "prediction": {
+                "machineStatus": "Healthy",
+                "prediction": "no_failure",
+                "probability": 0.0284,
+                "confidence": 0.9716,
+                "summary": "The machine appears to be operating normally."
+              }
+            },
+            "durationMs": 5,
+            "summary": "Ran a quick failure prediction."
+          }
+        }
+      ],
+      "tags": ["predictive-maintenance", "dashboard", "machine-health", "analysis"]
     }
   ],
-  "generatedAt": "2025-01-01T00:00:00.000Z"
+  "generatedAt": "2026-07-26T00:00:00.000Z"
 }
-
